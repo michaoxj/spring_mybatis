@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias type="cn.yd.oa.dao.ProductDao" alias="product"/>
+	</typeAliases>
+	
+	<mappers>
+	    <!-- sql语句是添加mapper文件中 -->
+	    <!-- mapper文件存储了查询数据库的SQL语句 -->
+	    <mapper resource="cn/yd/oa/dao/ProductDao.xml"/>
+	</mappers>
+</configuration>
+
+
+
+
+
+
+

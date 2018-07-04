@@ -1,0 +1,38 @@
+MyBatis开发环境搭建:
+
+   1: 添加mybatis-3.2.3.jar + mysql驱动 + 在src新建mybatis.cfg.xml配置文件
+   
+   2: mybatis.cfg.xml 添加连接数据库的4个参数
+   
+   3: 新建MybatisUtils(类似之前JdbcUtils),在静态块中加载mybatis.cfg.xml,并且编写一个方法返回sqlsession
+   
+       static {
+			System.out.println("1:");
+			// 通过java文件流读取配置文件
+			InputStream in =  MybatisUtils.class.getResourceAsStream("/mybatis.cfg.xml");
+			sf = new SqlSessionFactoryBuilder().build(in);
+		}
+	
+   4: 创建一个ProductDao.xml文件(sql语句都编写xml文件中方便后期维护),此文件必须记得添加到mybatis.cfg.xml主配置文件中
+   
+        <mapper namespace="aa.bb.cc">
+		    <!-- parameterType: 指定传输的对象类型 -->
+		    <insert id="save" parameterType="cn.yd.oa.model.Product">
+		        <!-- #{name} 由于name私有,本质上是通过getName方法获取 -->
+		    	insert into product (name,price,remark) values (#{name},#{price},#{remark})
+		    </insert>
+		 </mapper>
+		 
+    5: 创建一个productDao 完成插入的测试(必须要手动提交事务,如果与spring整合则可以减少代码)
+
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 

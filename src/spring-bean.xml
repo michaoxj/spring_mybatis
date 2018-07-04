@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+http://www.springframework.org/schema/tx 
+http://www.springframework.org/schema/tx/spring-tx-4.0.xsd 
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-4.0.xsd
+">
+	<!-- spring + mybatis整合流程
+	    1: 添加mybatis.jar + mybatis/spring.jar 拷贝mybatis.cfg.xml配置文件(删除里面dataSouce)
+	    2: SqlSessionFactoryBean,替换了MyBatisUtils(完成mybatis.cfg.xml + dataSouce加载)
+	    3：创建ProductDao.xml文件(此文件用来编写SQL语句,将会替换ProductDao),此配置文件需要添加mybatis.cfg.xml文件中
+			 1: 在mybatis中采用sqlSession+ProductDao.xml替换了jdbcTemplate(下面的代码需要删除)
+			 <bean id="jt" class="org.springframework.jdbc.core.JdbcTemplate">
+				<property name="dataSource" ref="ds" />
+			</bean>
+	         2: mybatis建议采用面向接口表层.声明ProductDao并且支持两个约定
+	         
+	                2.1 ProductDao接口的名称,与ProductDao.XML中namespace="ProductDao类全名"
+	                2.2 ProductDao接口里面的方法名称,与ProductDao.XML中ID相同
+	    4: MapperFactoryBean 动态生成DaoImpl,并且取名id后面ProductService要使用
+	    5: 在XML中配置ProductService依赖ProductDao(之前的service与dao的注解和扫描需要删除)
+	 -->
+	 
+	 <!--MapperFactoryBean是一个用来动态生成ProductDaoImpl类的工厂:  ProductDao接口 + ProductDao.XML + sqlSessionFactory  -->
+	 <bean id="pd" class="org.mybatis.spring.mapper.MapperFactoryBean">
+	     <!-- 由于xml文件与接口捆绑,因此指定接口就可以找到对应productDao.xml文件 -->
+	     <property name="mapperInterface" value="cn.yd.oa.dao.ProductDao" />
+	     <!-- 对应源码中的setSqlSessionFactory -->
+	     <property name="sqlSessionFactory" ref="sf" />
+	 </bean>
+	 
+	 <bean id="ps" class="cn.yd.oa.service.ProductService">
+	    <!-- 依赖根据接口动态生成dao实现类 -->
+	 	<property name="productDao" ref="pd" />
+	 </bean>
+
+     <!-- 此工具类替换了MyBatisUtils,主要是用来加载mybatis的主配置文件(主文件中dataSouce可以删除) -->
+     <bean id="sf" class="org.mybatis.spring.SqlSessionFactoryBean">
+          <property name="configLocation" value="classpath:mybatis.cfg.xml" />
+          <!-- 由于spring来管理事务,因此dataSource必须使用spring之前的配置 -->
+          <property name="dataSource" ref="ds" />
+     </bean>
+
+	<!-- XML:两种 合法XML(符合语法),有效的XML(有XSD验证的XML称为有效的XML) -->
+	<!-- 1: 配置声明式事务(编程式就是在代码中编写,声明式事务就是在XML中配置) -->
+	<bean id="tm" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="ds" />
+	</bean>
+	<!-- 2： tx标签来配置哪些方法需要动态切入事务(tx标签需要手动导入) 
+	    首先tx必须参照事务管理器
+	-->
+	<tx:advice id="ad" transaction-manager="tm">
+		<tx:attributes>
+		    <!-- 哪些方法需要运行时动态切入事务 -->
+			<tx:method name="save*"/>
+			<tx:method name="update*"/>
+			<tx:method name="delete*"/>
+		</tx:attributes>
+	</tx:advice>
+	<!-- 3：配置Service层的save update delete才需要切入事务 -->
+	<aop:config>
+	    <!-- 配置切面表达式 
+	        cn.yd.oa.service.*.*  :代表当前包的类的所有方法
+	        (..) 此方法有无参数都可以
+	        * cn.yd.oa.service: *代表当前方法有无返回值都可以
+	    -->
+	    <aop:pointcut expression="execution(* cn.yd.oa.service.*.*(..))" id="pt"/>
+	    <!-- 通过此配置,就能确定声明式事务的切面规则 -->
+	    <aop:advisor advice-ref="ad" pointcut-ref="pt"/>
+	</aop:config>
+	
+	
+	<!-- ProductDao ==> BaseDao ==> JdbcUtils ProductDao ==> JdbctTemplate ===> 
+		DataSource -->
+	<bean id="ds" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="jdbcUrl"
+			value="jdbc:mysql://localhost:3306/mysql" />
+		<property name="password" value="" />
+		<property name="user" value="root" />
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+	</bean>
+	
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <!-- 有效的xml文件必须有xsd/dtd声明,此配置文件是用来编写SQL语句的文件,需要添加mybatis.cfg.xml中 -->
+ <mapper namespace="cn.yd.oa.dao.ProductDao">
+    <!-- parameterType: 指定传输的对象类型 -->
+    <insert id="save" parameterType="product">
+        <!-- #{name} 由于name私有,本质上是通过getName方法获取 -->
+    	insert into product (name,price,remark) values (#{name},#{price},#{remark})
+    </insert>
+    <update id="update" parameterType="product">
+    	update product set name=#{name},price=#{price},remark=#{remark} where id=#{id}
+    </update>
+    
+    <delete id="delete" parameterType="int" >
+        <!-- 如果只有一个参数,#里面的值随便取 -->
+    	delete from product where id = #{abc}
+    </delete>
+    <select id="getById" parameterType="int" resultType="product">
+         select * from product where id = #{id}
+    </select>
+    <!-- mybatis返回List集合 resultType 指定的是集合里面存储的类型 -->
+    <select id="queryByName" parameterType="string" resultType="product">
+        <!-- 以前的查询关键字在 daoImple里面会添加%号,但是目前只有ProductDao接口,因此%在Service层中指定 -->
+        select * from product where name like #{keyword}
+    </select>
+    
+    
+    
+    
+ </mapper>
